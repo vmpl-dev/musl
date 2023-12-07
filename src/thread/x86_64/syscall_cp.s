@@ -1,3 +1,4 @@
+.include "syscall_vmpl.h"
 .text
 .global __cp_begin
 .hidden __cp_begin
@@ -24,7 +25,7 @@ __cp_begin:
 	mov 8(%rsp),%r8
 	mov 16(%rsp),%r9
 	mov %r11,8(%rsp)
-	syscall
+	VMPL_SYSCALL
 __cp_end:
 	ret
 __cp_cancel:
