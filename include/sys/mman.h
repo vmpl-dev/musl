@@ -106,6 +106,9 @@ extern "C" {
 
 #define MLOCK_ONFAULT 0x01
 
+#define PKEY_DISABLE_ACCESS 0x3
+#define PKEY_DISABLE_WRITE  0x2
+
 #define MFD_CLOEXEC 0x0001U
 #define MFD_ALLOW_SEALING 0x0002U
 #define MFD_HUGETLB 0x0004U
@@ -131,6 +134,9 @@ void *mremap (void *, size_t, size_t, int, ...);
 int remap_file_pages (void *, size_t, int, size_t, int);
 int memfd_create (const char *, unsigned);
 int mlock2 (const void *, size_t, unsigned);
+int pkey_mprotect(void *, size_t, int, int);
+int pkey_alloc(unsigned int flags, unsigned int access_rights);
+int pkey_free(int);
 #endif
 
 #if defined(_GNU_SOURCE) || defined(_BSD_SOURCE)
