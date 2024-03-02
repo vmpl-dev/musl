@@ -3,8 +3,7 @@
 
 #include "ghcb.h"
 #define GHCB		216
-#define USE_GHCB	224
-#define VMPL 0ULL
+#define VMPL 		0ULL
 
 #define percpu(var, offset)              \
 	__asm__ volatile("mov %%gs:(%1), %0" \
@@ -70,12 +69,10 @@
 		__asm__ __volatile__("movw %%cs, %0" : "=r"(cs)); \
 		if ((cs & 0x3) == 0)                              \
 		{                                                 \
-			uint64_t use_ghcb = 0;                        \
-			percpu(use_ghcb, USE_GHCB);                   \
-			if (use_ghcb)                                 \
+			struct ghcb *ghcb;                            \
+			percpu(ghcb, GHCB);                           \
+			if (ghcb)                                     \
 			{                                             \
-				struct ghcb *ghcb;                        \
-				percpu(ghcb, GHCB);                       \
 				__ghcb_protocol(__vmgexit);               \
 			}                                             \
 			else                                          \
