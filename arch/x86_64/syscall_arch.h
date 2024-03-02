@@ -62,6 +62,7 @@
 	} while (0)
 #endif
 
+#ifdef GHCB_PROTOCOL_SWITCH // GHCB_PROTOCOL_SWITCH
 #define __syscall_wrapper(__vmgexit, __syscall)           \
 	do                                                    \
 	{                                                     \
@@ -85,6 +86,39 @@
 			__asm__ __syscall;                            \
 		}                                                 \
 	} while (0)
+#elif defined(GHCB_PROTOCOL) // GHCB_PROTOCOL
+#define __syscall_wrapper(__vmgexit, __syscall)           \
+	do                                                    \
+	{                                                     \
+		unsigned short cs;                                \
+		__asm__ __volatile__("movw %%cs, %0" : "=r"(cs)); \
+		if ((cs & 0x3) == 0)                              \
+		{                                                 \
+			struct ghcb *ghcb;                            \
+			percpu(ghcb, GHCB);                           \
+			__ghcb_protocol(__vmgexit);                   \
+		}                                                 \
+		else                                              \
+		{                                                 \
+			__asm__ __syscall;                            \
+		}                                                 \
+	} while (0)
+#else // MSR_PROTOCOL
+#define __syscall_wrapper(__vmgexit, __syscall)           \
+	do                                                    \
+	{                                                     \
+		unsigned short cs;                                \
+		__asm__ __volatile__("movw %%cs, %0" : "=r"(cs)); \
+		if ((cs & 0x3) == 0)                              \
+		{                                                 \
+			__msr_protocol(__vmgexit);                    \
+		}                                                 \
+		else                                              \
+		{                                                 \
+			__asm__ __syscall;                            \
+		}                                                 \
+	} while (0)
+#endif
 
 #if __GCC__ >= 12
 #define vmgexit "vmgexit"
