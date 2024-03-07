@@ -86,6 +86,20 @@ struct ghcb {
 	uint32_t ghcb_usage;
 } __attribute__((packed));
 
+/* STATIC ASSERTS */
+#define STATIC_ASSERT(value, offset) \
+	_Static_assert(offsetof(struct ghcb, value) == offset, "GHCB " #value " offset mismatch")
+
+STATIC_ASSERT(save.sw_exit_code, 0x0390);
+STATIC_ASSERT(save.sw_exit_info_1, 0x0398);
+STATIC_ASSERT(save.sw_exit_info_2, 0x03a0);
+STATIC_ASSERT(save.sw_scratch, 0x03a8);
+STATIC_ASSERT(save.valid_bitmap, 0x03f0);
+STATIC_ASSERT(save.x87_state_gpa, 0x0400);
+STATIC_ASSERT(shared_buffer, 0x0800);
+STATIC_ASSERT(protocol_version, 0x0ffa);
+STATIC_ASSERT(ghcb_usage, 0x0ffc);
+
 /* GHCB Accessor functions */
 
 #define GHCB_BITMAP_IDX(field)							\
