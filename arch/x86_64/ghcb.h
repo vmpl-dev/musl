@@ -69,7 +69,7 @@ struct ghcb_save_area {
 	uint64_t sw_exit_info_2;
 	uint64_t sw_scratch;
 	uint8_t reserved_0x3b0[0x40];
-	uint8_t valid_bitmap[0x16];
+	uint8_t valid_bitmap[0x10];
 	uint64_t x87_state_gpa;
 } __attribute__((packed));
 

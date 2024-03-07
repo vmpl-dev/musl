@@ -6,6 +6,28 @@
     mov %cs, %ax
     test $3, %al
     jnz 11f
+    mov $0xd8,%eax
+    mov %gs:(%eax),%rax
+    test %rax,%rax
+    jz 10f
+    push   %rcx
+    push   %rdx
+    mov    $0x1,%edx        /* protocol_version */
+    mov    $0x80000018,%ecx /* sw_exit_code */
+    movl   $0x0,0xffc(%rax) /* ghcb->ghcb_usage (0) */
+    mov    %dx,0xffa(%rax)  /* ghcb->protocol_version (1) */
+    movabs $0x1c000000000000,%rdx
+    mov    %rcx,0x390(%rax) /* ghcb->sw_exit_code */
+    or     %rdx,0x3f8(%rax) /* ghcb->valid_bitmap */
+    movq   $0x0,0x398(%rax) /* ghcb->sw_exit_info_1 */
+    movq   $0x0,0x3a0(%rax) /* ghcb->sw_exit_info_2 */
+    pop    %rdx
+    pop    %rcx
+    pop    %rax
+    popf
+    vmgexit
+    jmp 22f
+10:
     push %rcx
     push %rdx
     mov $0xc0010130, %ecx
