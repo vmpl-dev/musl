@@ -10,7 +10,6 @@
 					 : "=r"(var)         \
 					 : "r"(offset));
 
-#define GHCB_PROTOCOL_COMPLETE 1
 #define GHCB_PROTOCOL_SWITCH 1
 #ifdef GHCB_PROTOCOL_COMPLETE
 #define __msr_protocol(__vmgexit)                       \
