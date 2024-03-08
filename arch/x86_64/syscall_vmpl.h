@@ -6,12 +6,12 @@
     mov %cs, %ax
     test $3, %al
     jnz 11f
+    push   %rcx
+    push   %rdx
     mov $0xd8,%eax
     mov %gs:(%eax),%rax
     test %rax,%rax
     jz 10f
-    push   %rcx
-    push   %rdx
     mov    $0x1,%edx        /* protocol_version */
     mov    $0x80000018,%ecx /* sw_exit_code */
     movl   $0x0,0xffc(%rax) /* ghcb->ghcb_usage (0) */
@@ -28,8 +28,6 @@
     vmgexit
     jmp 22f
 10:
-    push %rcx
-    push %rdx
     mov $0xc0010130, %ecx
     mov $0x16, %eax
     xor %edx, %edx

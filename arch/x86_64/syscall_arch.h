@@ -10,21 +10,22 @@
 					 : "=r"(var)         \
 					 : "r"(offset));
 
+#define GHCB_PROTOCOL_COMPLETE 1
 #define GHCB_PROTOCOL_SWITCH 1
 #ifdef GHCB_PROTOCOL_COMPLETE
 #define __msr_protocol(__vmgexit)                       \
 	do                                                  \
 	{                                                   \
-		u64 val, resp;                                  \
-		val = sev_es_rd_ghcb_msr();                     \
+		unsigned long val, resp;                        \
+		val = __rdmsr(GHCB_MSR);                        \
 		__wrmsr(GHCB_MSR, GHCB_MSR_VMPL_REQ_LEVEL(0));  \
 		__asm__ __vmgexit;                              \
-		resp = sev_es_rd_ghcb_msr();                    \
-		sev_es_wr_ghcb_msr(val);                        \
+		resp = __rdmsr(GHCB_MSR);                       \
+		__wrmsr(GHCB_MSR, val);                         \
 		if (GHCB_RESP_CODE(resp) != GHCB_MSR_VMPL_RESP) \
-			ret = -EINVAL;                              \
+			ret = -ENOSYS;                              \
 		if (GHCB_MSR_VMPL_RESP_VAL(resp) != 0)          \
-			ret = -EINVAL;                              \
+			ret = -ENOSYS;                              \
 	} while (0)
 
 #define __ghcb_protocol(__vmgexit)                             \
@@ -39,9 +40,9 @@
 		__asm__ __vmgexit;                                     \
 		sw_exit_info_1 = ghcb_get_sw_exit_info_1(ghcb);        \
 		if (!ghcb_sw_exit_info_1_is_valid(ghcb))               \
-			return -EINVAL;                                    \
+			return -ENOSYS;                                    \
 		if (lower_32_bits(sw_exit_info_1) != 0)                \
-			return -EINVAL;                                    \
+			return -ENOSYS;                                    \
 	} while (0)
 #else
 #define __msr_protocol(__vmgexit)                      \

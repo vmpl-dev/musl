@@ -36,6 +36,9 @@ static inline void __set_bit(int nr, unsigned long *addr) {
 #define GHCB_MSR_VMPL_RES 0x017
 #define GHCB_MSR_VMPL_RESP_VAL(v) (v >> 32)
 
+#define GHCB_MSR_VMPL_RESP 0x17
+#define GHCB_RESP_CODE(x) GHCB_MSR_INFO(x)
+
 // Read MSR
 static inline unsigned long __rdmsr(unsigned int msr) {
     unsigned int lo;
