@@ -2,6 +2,8 @@
 #define __SYSCALL_LL_O(x) (x)
 
 #include "ghcb.h"
+
+#define X86_EFLAGS_IF 0x200
 #define GHCB		216
 #define VMPL 		0ULL
 
@@ -9,6 +11,39 @@
 	__asm__ volatile("mov %%gs:(%1), %0" \
 					 : "=r"(var)         \
 					 : "r"(offset));
+
+static inline int irqs_disabled_flags(unsigned long flags)
+{
+	return !(flags & X86_EFLAGS_IF);
+}
+
+static inline void local_irq_disable(void)
+{
+	__asm__ __volatile__("cli" : : : "memory");
+}
+
+static inline void local_irq_enable(void)
+{
+	__asm__ __volatile__("sti" : : : "memory");
+}
+
+static inline unsigned long local_irq_save()
+{
+	unsigned long flags;
+	__asm__ __volatile__("pushfq; popq %0; cli" : "=r"(flags) : : "memory");
+	return flags;
+}
+
+static inline unsigned long local_irq_restore(unsigned long flags)
+{
+	unsigned short cs;
+	__asm__ __volatile__("movw %%cs, %0" : "=r"(cs));
+	if ((cs & 0x3) == 0)
+	{
+		if (!irqs_disabled_flags(flags))
+			local_irq_enable();
+	}
+}
 
 #define GHCB_PROTOCOL_SWITCH 1
 #ifdef GHCB_PROTOCOL_COMPLETE
@@ -71,6 +106,8 @@
 		__asm__ __volatile__("movw %%cs, %0" : "=r"(cs)); \
 		if ((cs & 0x3) == 0)                              \
 		{                                                 \
+			unsigned long flags;                          \
+			flags = local_irq_save();                     \
 			struct ghcb *ghcb;                            \
 			percpu(ghcb, GHCB);                           \
 			if (ghcb)                                     \
@@ -81,6 +118,7 @@
 			{                                             \
 				__msr_protocol(__vmgexit);                \
 			}                                             \
+			local_irq_restore(flags);                     \
 		}                                                 \
 		else                                              \
 		{                                                 \
@@ -95,9 +133,12 @@
 		__asm__ __volatile__("movw %%cs, %0" : "=r"(cs)); \
 		if ((cs & 0x3) == 0)                              \
 		{                                                 \
+			unsigned long flags;                          \
+			flags = local_irq_save();                     \
 			struct ghcb *ghcb;                            \
 			percpu(ghcb, GHCB);                           \
 			__ghcb_protocol(__vmgexit);                   \
+			local_irq_restore(flags);                     \
 		}                                                 \
 		else                                              \
 		{                                                 \
@@ -112,7 +153,10 @@
 		__asm__ __volatile__("movw %%cs, %0" : "=r"(cs)); \
 		if ((cs & 0x3) == 0)                              \
 		{                                                 \
+			unsigned long flags;                          \
+			flags = local_irq_save();                     \
 			__msr_protocol(__vmgexit);                    \
+			local_irq_restore(flags);                     \
 		}                                                 \
 		else                                              \
 		{                                                 \
