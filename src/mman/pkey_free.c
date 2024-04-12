@@ -13,13 +13,7 @@ int __pkey_free(int pkey)
         return -1;
     }
 
-    ret = syscall(SYS_pkey_free, pkey);
-    if (ret < 0) {
-        errno = -ret;
-        return -1;
-    }
-
-    return ret;
+    return syscall(SYS_pkey_free, pkey);
 }
 
 weak_alias(__pkey_free, pkey_free);

@@ -12,13 +12,7 @@ int __pkey_mprotect(void *addr, size_t len, int prot, int pkey) {
         return -1;
     }
 
-    ret = syscall(SYS_pkey_mprotect, addr, len, prot, pkey);
-    if (ret < 0) {
-        errno = -ret;
-        return -1;
-    }
-
-    return ret;
+    return syscall(SYS_pkey_mprotect, addr, len, prot, pkey);
 }
 
 weak_alias(__pkey_mprotect, pkey_mprotect);
