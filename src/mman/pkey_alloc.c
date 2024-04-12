@@ -14,13 +14,7 @@ int __pkey_alloc(unsigned int flags, unsigned int access_rights)
         return -1;
     }
 
-    ret = syscall(SYS_pkey_alloc, flags, access_rights);
-    if (ret < 0) {
-        errno = -ret;
-        return -1;
-    }
-
-    return ret;
+    return syscall(SYS_pkey_alloc, flags, access_rights);
 }
 
 weak_alias(__pkey_alloc, pkey_alloc);
