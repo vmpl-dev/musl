@@ -1,20 +1,22 @@
 #ifndef __VMPL_SYSCALL_H_
 #define __VMPL_SYSCALL_H_
 .macro VMPL_SYSCALL
+    push %rcx
     push %r9
-    push %r8
-    push %r10
-    push %rdx
-    push %rsi
-    push %rdi
+    mov %r8,  %r9
+    mov %r10, %r8
+    mov %rdx, %rcx
+    mov %rsi, %rdx
+    mov %rdi, %rsi
     mov %rax, %rdi
-    mov %rsp, %rsi
-    call vmpl_syscall
-    pop %rdi
-    pop %rsi
-    pop %rdx
-    pop %r10
-    pop %r8
+    call syscall
+    mov %rsi, %rdi
+    mov %rdx, %rsi
+    mov %rcx, %rdx
+    mov %r8,  %r10
+    mov %r9,  %r8
     pop %r9
+    pop %rcx
+
 .endm
 #endif
