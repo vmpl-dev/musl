@@ -1,6 +1,9 @@
 #ifndef __VMPL_SYSCALL_H_
 #define __VMPL_SYSCALL_H_
 .macro VMPL_SYSCALL
+    pushfq
+    push %rcx
+    push %r11
     push %r9
     push %r8
     push %r10
@@ -16,5 +19,8 @@
     pop %r10
     pop %r8
     pop %r9
+    pop %r11
+    pop %rcx
+    popfq
 .endm
 #endif
