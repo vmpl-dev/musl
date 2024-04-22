@@ -2,9 +2,11 @@
 #define __SYSCALL_LL_O(x) (x)
 
 #include "ghcb.h"
+#include "errno.h"
 
 #define X86_EFLAGS_IF 0x200
 #define GHCB		216
+#define HOTCALLS	224
 #define VMPL 		0ULL
 
 #define percpu(var, offset)              \
@@ -44,6 +46,26 @@ static inline unsigned long local_irq_restore(unsigned long flags)
 			local_irq_enable();
 	}
 }
+
+typedef long (*hotcall_func_t)(long, ...);
+
+#define __hotcalls_call(sysnr, ...)                       \
+	do                                                    \
+	{                                                     \
+		unsigned short cs;                                \
+		__asm__ __volatile__("movw %%cs, %0" : "=r"(cs)); \
+		if ((cs & 0x3) == 0)                              \
+		{                                                 \
+			hotcall_func_t hotcall;                       \
+			percpu(hotcall, HOTCALLS);                    \
+			if (hotcall)                                  \
+			{                                             \
+				ret = hotcall(sysnr, ##__VA_ARGS__);      \
+				if (ret != -ENOSYS)                       \
+					return ret;                           \
+			}                                             \
+		}                                                 \
+	} while (0)
 
 #define GHCB_PROTOCOL_SWITCH 1
 #ifdef GHCB_PROTOCOL_COMPLETE
@@ -174,6 +196,7 @@ static inline unsigned long local_irq_restore(unsigned long flags)
 static __inline long __syscall0(long n)
 {
 	unsigned long ret;
+	__hotcalls_call(n);
 	__syscall_wrapper(__volatile__(vmgexit : "=a"(ret) : "a"(n) : "rcx", "r11", "memory"),
 					 __volatile__("syscall" : "=a"(ret) : "a"(n) : "rcx", "r11", "memory"));
 	return ret;
@@ -182,6 +205,7 @@ static __inline long __syscall0(long n)
 static __inline long __syscall1(long n, long a1)
 {
 	unsigned long ret;
+	__hotcalls_call(n, a1);
 	__syscall_wrapper(__volatile__(vmgexit : "=a"(ret) : "a"(n), "D"(a1) : "rcx", "r11", "memory"),
 					 __volatile__("syscall" : "=a"(ret) : "a"(n), "D"(a1) : "rcx", "r11", "memory"));
 	return ret;
@@ -190,6 +214,7 @@ static __inline long __syscall1(long n, long a1)
 static __inline long __syscall2(long n, long a1, long a2)
 {
 	unsigned long ret;
+	__hotcalls_call(n, a1, a2);
 	__syscall_wrapper(__volatile__(vmgexit : "=a"(ret) : "a"(n), "D"(a1), "S"(a2)
 								   : "rcx", "r11", "memory"),
 					  __volatile__("syscall" : "=a"(ret) : "a"(n), "D"(a1), "S"(a2)
@@ -200,6 +225,7 @@ static __inline long __syscall2(long n, long a1, long a2)
 static __inline long __syscall3(long n, long a1, long a2, long a3)
 {
 	unsigned long ret;
+	__hotcalls_call(n, a1, a2, a3);
 	__syscall_wrapper(__volatile__(vmgexit : "=a"(ret) : "a"(n), "D"(a1), "S"(a2),
 														   "d"(a3) : "rcx", "r11", "memory"),
 					  __volatile__("syscall" : "=a"(ret) : "a"(n), "D"(a1), "S"(a2),
@@ -211,6 +237,7 @@ static __inline long __syscall4(long n, long a1, long a2, long a3, long a4)
 {
 	unsigned long ret;
 	register long r10 __asm__("r10") = a4;
+	__hotcalls_call(n, a1, a2, a3, a4);
 	__syscall_wrapper(__volatile__(vmgexit : "=a"(ret) : "a"(n), "D"(a1), "S"(a2),
 														   "d"(a3), "r"(r10) : "rcx", "r11", "memory"),
 					  __volatile__("syscall" : "=a"(ret) : "a"(n), "D"(a1), "S"(a2),
@@ -223,6 +250,7 @@ static __inline long __syscall5(long n, long a1, long a2, long a3, long a4, long
 	unsigned long ret;
 	register long r10 __asm__("r10") = a4;
 	register long r8 __asm__("r8") = a5;
+	__hotcalls_call(n, a1, a2, a3, a4, a5);
 	__syscall_wrapper(__volatile__(vmgexit : "=a"(ret) : "a"(n), "D"(a1), "S"(a2),
 														   "d"(a3), "r"(r10), "r"(r8) : "rcx", "r11", "memory"),
 					  __volatile__("syscall" : "=a"(ret) : "a"(n), "D"(a1), "S"(a2),
@@ -236,6 +264,7 @@ static __inline long __syscall6(long n, long a1, long a2, long a3, long a4, long
 	register long r10 __asm__("r10") = a4;
 	register long r8 __asm__("r8") = a5;
 	register long r9 __asm__("r9") = a6;
+	__hotcalls_call(n, a1, a2, a3, a4, a5, a6);
 	__syscall_wrapper(__volatile__(vmgexit : "=a"(ret) : "a"(n), "D"(a1), "S"(a2),
 														   "d"(a3), "r"(r10), "r"(r8), "r"(r9) : "rcx", "r11", "memory"),
 					  __volatile__("syscall" : "=a"(ret) : "a"(n), "D"(a1), "S"(a2),
