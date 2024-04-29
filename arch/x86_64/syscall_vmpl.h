@@ -32,8 +32,8 @@
     pop    %rax
     popf
     vmgexit
-    pop %r12
     test   $0x200,%r12
+    pop %r12
     jz 22f
     sti
     jmp 22f
@@ -48,8 +48,8 @@
     pop %rax
     popf
     vmgexit
-    pop %r12
     test $0x200, %r12
+    pop %r12
     jz 22f
     sti
     jmp 22f
