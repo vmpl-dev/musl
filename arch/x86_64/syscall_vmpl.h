@@ -1,11 +1,15 @@
 #ifndef __VMPL_SYSCALL_H_
 #define __VMPL_SYSCALL_H_
 .macro VMPL_SYSCALL
+    push   %r12
+    pushf
+    pop    %r12
     pushf
     push %rax
     mov %cs, %ax
     test $3, %al
     jnz 11f
+    cli
     push   %rcx
     push   %rdx
     push   %rbp
@@ -28,6 +32,10 @@
     pop    %rax
     popf
     vmgexit
+    pop %r12
+    test   $0x200,%r12
+    jz 22f
+    sti
     jmp 22f
 10:
     mov $0xc0010130, %ecx
@@ -40,10 +48,15 @@
     pop %rax
     popf
     vmgexit
+    pop %r12
+    test $0x200, %r12
+    jz 22f
+    sti
     jmp 22f
 11:
     pop %rax
     popf
+    pop %r12
     syscall
 22:
 .endm
