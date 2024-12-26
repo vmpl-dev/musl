@@ -21,7 +21,8 @@
     movabs $0x1c000000000000,%rdx
     mov    %rcx,0x390(%rbp) /* ghcb->sw_exit_code */
     or     %rdx,0x3f8(%rbp) /* ghcb->valid_bitmap */
-    movq   %gs:232, %rax    /* vmpl */
+    mov    $232, %eax       /* percpu->vmpl */
+    mov    %gs:(%eax), %rax /* vmpl */
     movq   %rax,0x398(%rbp) /* ghcb->sw_exit_info_1 = vmpl */
     movq   $0x0,0x3a0(%rbp) /* ghcb->sw_exit_info_2 */
     pop    %rbp
@@ -32,8 +33,10 @@
     vmgexit
     jmp 22f
 10:
+    mov $232, %eax
+    mov %gs:(%eax), %rax
+    or  $0x16, %eax
     mov $0xc0010130, %ecx
-    mov $0x16, %eax
     xor %edx, %edx
     wrmsr
     pop %rbp

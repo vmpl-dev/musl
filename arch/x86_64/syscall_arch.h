@@ -12,12 +12,12 @@
 
 #define GHCB_PROTOCOL_SWITCH 1
 #ifdef GHCB_PROTOCOL_COMPLETE
-#define __msr_protocol(__vmgexit)                       \
+#define __msr_protocol(__vmgexit, vmpl)                 \
 	do                                                  \
 	{                                                   \
 		unsigned long val, resp;                        \
 		val = __rdmsr(GHCB_MSR);                        \
-		__wrmsr(GHCB_MSR, GHCB_MSR_VMPL_REQ_LEVEL(0));  \
+		__wrmsr(GHCB_MSR, GHCB_MSR_VMPL_REQ_LEVEL(vmpl));  \
 		__asm__ __vmgexit;                              \
 		resp = __rdmsr(GHCB_MSR);                       \
 		__wrmsr(GHCB_MSR, val);                         \
@@ -44,10 +44,10 @@
 			return -ENOSYS;                                    \
 	} while (0)
 #else
-#define __msr_protocol(__vmgexit)                      \
+#define __msr_protocol(__vmgexit, vmpl)                      \
 	do                                                 \
 	{                                                  \
-		__wrmsr(GHCB_MSR, GHCB_MSR_VMPL_REQ_LEVEL(0)); \
+		__wrmsr(GHCB_MSR, GHCB_MSR_VMPL_REQ_LEVEL(vmpl)); \
 		__asm__ __vmgexit;                             \
 	} while (0)
 
@@ -71,17 +71,17 @@
 		__asm__ __volatile__("movw %%cs, %0" : "=r"(cs)); \
 		if ((cs & 0x3) == 0)                              \
 		{                                                 \
+			uint64_t vmpl;                                \
+			percpu(vmpl, VMPL);                           \
 			struct ghcb *ghcb;                            \
 			percpu(ghcb, GHCB);                           \
 			if (ghcb)                                     \
 			{                                             \
-				uint64_t vmpl;                         	  \
-				percpu(vmpl, VMPL);                   	  \
 				__ghcb_protocol(__vmgexit, vmpl);         \
 			}                                             \
 			else                                          \
 			{                                             \
-				__msr_protocol(__vmgexit);                \
+				__msr_protocol(__vmgexit, vmpl);          \
 			}                                             \
 		}                                                 \
 		else                                              \
@@ -116,7 +116,9 @@
 		__asm__ __volatile__("movw %%cs, %0" : "=r"(cs)); \
 		if ((cs & 0x3) == 0)                              \
 		{                                                 \
-			__msr_protocol(__vmgexit);                    \
+			uint64_t vmpl;                                \
+			percpu(vmpl, VMPL);                           \
+			__msr_protocol(__vmgexit, vmpl);              \
 		}                                                 \
 		else                                              \
 		{                                                 \
