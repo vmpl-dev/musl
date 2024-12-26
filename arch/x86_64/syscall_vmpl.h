@@ -1,5 +1,6 @@
 #ifndef __VMPL_SYSCALL_H_
 #define __VMPL_SYSCALL_H_
+
 .macro VMPL_SYSCALL
     pushf
     push %rax
@@ -20,7 +21,8 @@
     movabs $0x1c000000000000,%rdx
     mov    %rcx,0x390(%rbp) /* ghcb->sw_exit_code */
     or     %rdx,0x3f8(%rbp) /* ghcb->valid_bitmap */
-    movq   $0x0,0x398(%rbp) /* ghcb->sw_exit_info_1 */
+    movq   %gs:232, %rax    /* vmpl */
+    movq   %rax,0x398(%rbp) /* ghcb->sw_exit_info_1 = vmpl */
     movq   $0x0,0x3a0(%rbp) /* ghcb->sw_exit_info_2 */
     pop    %rbp
     pop    %rdx
