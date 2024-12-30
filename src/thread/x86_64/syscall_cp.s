@@ -10,6 +10,7 @@
 .global __syscall_cp_asm
 .hidden __syscall_cp_asm
 .type   __syscall_cp_asm,@function
+.extern vmpl_syscall
 __syscall_cp_asm:
 
 __cp_begin:
@@ -25,7 +26,7 @@ __cp_begin:
 	mov 8(%rsp),%r8		/* save [arg6] to r8[arg4] */
 	mov 16(%rsp),%r9	/* save [arg7] to r9[arg5] */
 	mov %r11,8(%rsp)	/* restore r11[tmp] to [arg6] */
-	VMPL_SYSCALL
+	callq vmpl_syscall
 __cp_end:
 	ret
 __cp_cancel:

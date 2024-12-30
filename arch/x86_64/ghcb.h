@@ -3,6 +3,7 @@
 
 #include <stddef.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 // Common types
 typedef unsigned char uint8_t;
@@ -112,7 +113,7 @@ STATIC_ASSERT(ghcb_usage, 0x0ffc);
 	static inline bool ghcb_##field##_is_valid(const struct ghcb *ghcb) \
 	{									\
 		return test_bit(GHCB_BITMAP_IDX(field),				\
-				(unsigned long *)&ghcb->save.valid_bitmap);	\
+				(unsigned long *)&ghcb->save.valid_bitmap[0]);	\
 	}									\
 										\
 	static inline uint64_t ghcb_get_##field(struct ghcb *ghcb)		\
@@ -128,7 +129,7 @@ STATIC_ASSERT(ghcb_usage, 0x0ffc);
 	static inline void ghcb_set_##field(struct ghcb *ghcb, uint64_t value) \
 	{									\
 		__set_bit(GHCB_BITMAP_IDX(field),				\
-			  (unsigned long *)&ghcb->save.valid_bitmap);		\
+			  (unsigned long *)&ghcb->save.valid_bitmap[0]);		\
 		ghcb->save.field = value;					\
 	}
 

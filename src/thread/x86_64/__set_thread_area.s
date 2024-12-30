@@ -4,9 +4,10 @@
 .global __set_thread_area
 .hidden __set_thread_area
 .type __set_thread_area,@function
+.extern vmpl_syscall
 __set_thread_area:
 	mov %rdi,%rsi           /* shift for syscall */
 	movl $0x1002,%edi       /* SET_FS register */
 	movl $158,%eax          /* set fs segment to */
-	VMPL_SYSCALL            /* arch_prctl(SET_FS, arg)*/
+	callq vmpl_syscall       /* arch_prctl(SET_FS, arg)*/
 	ret

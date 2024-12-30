@@ -3,6 +3,7 @@
 .global __clone
 .hidden __clone
 .type   __clone,@function
+.extern vmpl_syscall
 __clone:
 	xor %eax,%eax
 	mov $56,%al
@@ -15,7 +16,7 @@ __clone:
 	and $-16,%rsi
 	sub $8,%rsi
 	mov %rcx,(%rsi)
-	VMPL_SYSCALL
+	callq vmpl_syscall
 	test %eax,%eax
 	jnz 1f
 	xor %ebp,%ebp
@@ -24,6 +25,6 @@ __clone:
 	mov %eax,%edi
 	xor %eax,%eax
 	mov $60,%al
-	VMPL_SYSCALL
+	callq vmpl_syscall
 	hlt
 1:	ret
